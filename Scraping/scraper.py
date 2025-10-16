@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pickle
-import re
-import os
 from abc import ABC,abstractmethod
 from random import randint
 import time
@@ -91,10 +89,7 @@ class Requestor(ABC):
     @abstractmethod
     def __init__(self,session, allowed_requests,interval,padding_factor):
         raise NotImplementedError
-       
-        
-        
-
+    
     #Makes requests to links and downloads html files to dir
     @abstractmethod
     def makeRequests(cls,links):
@@ -107,10 +102,10 @@ class Requestor(ABC):
 class baseRequestor(Requestor):
     
     
-    def __init__(self,session=None, allowed_requests=100,interval=1,padding_factor=5):
+    def __init__(self,session=None, allowed_requests=1000,interval_ms=1000,padding_factor=5):
         self.__allowed_requests = allowed_requests
-        self.__interval = interval
-        self.__padding = interval/padding_factor
+        self.__interval_ms = interval_ms
+        self.__padding_ms = round(interval_ms/padding_factor)
         self.__session = session
         self.__default_headers = {
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -134,25 +129,26 @@ class baseRequestor(Requestor):
         
         
     #Requests pages and returns list of dicts with link, status, and content
+    #Uses set interval with padding factor in form of interval/padfactor for delaying commands
     def makeRequests(self,links):
         
         response_list = []
+
+        num_links = len(links)
     
         index = 0
 
-        while(index < len(links) and self.__allowed_requests > 0):
+        while(index < num_links and self.__allowed_requests > 0):
             
-            print(f'Making index:{index} request to {links[index]}')
+            print(f'link[{index}] request to {links[index]}')
             
             response_list.append(self.__getPage(links[index]))
-            
-            interval_ms = (self.__interval/1000)
-            padding = interval_ms/self.__padding
-            
-            rand_padding = (padding*(-1),padding)
-            
-            time.sleep(interval_ms + padding)
-            
+        
+            if index != num_links-1:
+                rand_padding = randint(-1*self.__padding_ms, self.__padding_ms)
+                
+                time.sleep((self.__interval_ms + rand_padding)/1000)
+                
             self.__allowed_requests -= 1
             index+=1
     
@@ -179,11 +175,11 @@ class baseRequestor(Requestor):
     def getAllowedRequests(self):
         return self.__allowed_requests
     
-    def setInterval(self,interval):
-        self.__interval = interval
+    def setInterval(self,interval_ms):
+        self.__interval_ms = interval_ms
     
     def getInterval(self):
-        return self.__interval
+        return self.__interval_ms
     
     def setPadding(self,padding_factor):
         self.__padding = padding_factor
@@ -203,7 +199,7 @@ class sessionSoupRequestor(baseRequestor):
 #Parser used for 2025 events schedule page
 class baseEventPageParser(eventPageParser):
 
-    #Returns dictionary with event session pages or None
+    #Returns dictionary with event session html
     @classmethod
     def scrapeEventsPageContent(cls,soup:BeautifulSoup):
         events = []
@@ -222,7 +218,7 @@ class baseEventPageParser(eventPageParser):
         
         return events
     
-    # Returns dictionary with event data or None
+    # Returns dictionary with event data
     @classmethod
     def __scrapeEventTableRow(cls,soup:BeautifulSoup):
         columns = {}
@@ -271,7 +267,7 @@ class baseRawDataPageParser(rawDataPageParser):
         #Removes the heading row
         rows.pop(0)
         
-        return rows
+        return rows.find_all('td')
         
         
         
@@ -302,9 +298,6 @@ class baseFinalDataPageParser(ABC):
 #Workspace
 
 def main():
-    os.chdir('CCC Autocross App')
-
-    spfilename = 'sp.pkl'
 
     site_url = 'https://ccsportscarclub.org/autocross/schedule/'
 
@@ -314,7 +307,7 @@ def main():
 
     links = links_text.split(',')
         
-    requestor = baseRequestor(None,interval=1000)
+    requestor = baseRequestor(None,interval_ms=1000)
     
     responses = requestor.makeRequests(links)
     
