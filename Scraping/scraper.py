@@ -4,7 +4,14 @@ import pickle
 from abc import ABC,abstractmethod
 from random import randint
 import time
+from datetime import datetime
+import sys
+import logging
 
+#Logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logging.basicConfig(filename=datetime.now().strftime('logs/scraper%m.%d.%Y.%H.%M.%S.log'))
 
 #Config
 
@@ -24,20 +31,20 @@ def loadSoup(filename) -> BeautifulSoup:
     with open(filename,'rb') as file:
        return pickle.load(file)
 
-def printEvents(events, output_file):
+def printEvents(events):
     for item in events:
-        print("Event {}:".format(events.index(item)),file=output_file)
+        print("Event {}:".format(events.index(item)))
         for key,value in item.items():
             if type(value) == list:
-                print('{}:'.format(key),file=output_file)
+                print('{}:'.format(key))
                 if len(value) != 0:
                     for i in value:
-                        print('\t{}'.format(i),file=output_file)
+                        print('\t{}'.format(i))
                 else:
-                    print('No links found',file=output_file)
+                    print('No links found')
             else:
-                print("{}: {}".format(key,value),file=output_file)
-        print(file=output_file)
+                print("{}: {}".format(key,value))
+        print()
     
     
     
@@ -130,6 +137,7 @@ class baseRequestor(Requestor):
         
     #Requests pages and returns list of dicts with link, status, and content
     #Uses set interval with padding factor in form of interval/padfactor for delaying commands
+    #Returns list of dicts in form {'link':link, 'status_code':status_code,'content':content}
     def makeRequests(self,links):
         
         response_list = []
@@ -140,20 +148,36 @@ class baseRequestor(Requestor):
 
         while(index < num_links and self.__allowed_requests > 0):
             
-            print(f'link[{index}] request to {links[index]}')
+            logger.info(f'link[{index}] request to {links[index]}')
+
+            content = self.__getPage(links[index])
             
-            response_list.append(self.__getPage(links[index]))
+            logger.info(f'Response code: {content['status_code']}')
+
+            response_list.append(content)
         
             if index != num_links-1:
                 rand_padding = randint(-1*self.__padding_ms, self.__padding_ms)
                 
                 time.sleep((self.__interval_ms + rand_padding)/1000)
-                
+            
             self.__allowed_requests -= 1
             index+=1
     
         return response_list
     
+    def makeRequest(self,link,delay=0):
+        logger.info(f'Request to {link}')
+
+        if(delay > 0):
+            time.sleep(delay/1000)
+            
+        content = self.__getPage(link)
+            
+        logger.info(f'Response code: {content['status_code']}')
+
+        self.__allowed_requests -= 1
+        return content
     #Returns html page or None
     def __getPage(self,link):
         req = self.__session.get(link)
@@ -242,7 +266,7 @@ class baseEventPageParser(eventPageParser):
         columns["name"] = children[4].contents[0]
         
         # Get event sessions
-        session_links = [*map(lambda x :x.get('href') ,children[4].find_all('a'))]
+        session_links = [*map(lambda x :[x.get('href'),None] ,children[4].find_all('a'))]
         columns["session_data_links"] = session_links
         
         
@@ -299,30 +323,33 @@ class baseFinalDataPageParser(ABC):
 
 def main():
 
-    site_url = 'https://ccsportscarclub.org/autocross/schedule/'
 
-    output_file = open('output_print.txt','w',encoding='utf-8')
-
-    links_text = 'http://ccsportscarclub.org/files/2025/04/april-cross-saturday-04-26-2025_raw.htm,http://ccsportscarclub.org/files/2025/04/april-cross-saturday-04-26-2025_pax.htm,http://ccsportscarclub.org/files/2025/04/april-cross-saturday-04-26-2025_fin.htm,http://ccsportscarclub.org/files/2025/04/april-cross-sunday-04-27-2025_raw.htm,http://ccsportscarclub.org/files/2025/04/april-cross-sunday-04-27-2025_pax.htm,http://ccsportscarclub.org/files/2025/04/april-cross-sunday-04-27-2025_fin.htm'
-
-    links = links_text.split(',')
-        
-    requestor = baseRequestor(None,interval_ms=1000)
+    origin_url = 'https://ccsportscarclub.org/autocross/schedule/'
     
-    responses = requestor.makeRequests(links)
     
-    print('starting requests ')
-    for item in responses:
-        # for key,value in item.items():
-        #     print(f'{key}: {value}')
-        # print()
-        print(item['status_code'])
+    requestor = baseRequestor(None,interval_ms=10000)
+    
+    origin_data = requestor.makeRequests([origin_url])
+
+    if origin_data[0]['status_code'] != 200:
+        print('Origin url request failed.\nExiting...')
+        exit(1)
+
+    origin_soup = BeautifulSoup(origin_data[0]['content'],'html.parser')
         
-    #Close output file
-    output_file.close()
+    origin_events = baseEventPageParser.scrapeEventsPageContent(origin_soup)
+
+    for event in origin_events:
+        for link_bundle in event['session_data_links']:
+            response = requestor.makeRequest(link_bundle[0])
+            if response['status_code'] == 200:
+                link_bundle[1] = response['content']
+
+    printEvents(origin_events)
     
     return 1
     
+
 
 
 if __name__ == '__main__':
