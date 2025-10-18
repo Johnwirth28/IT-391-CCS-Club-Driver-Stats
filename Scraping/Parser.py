@@ -120,16 +120,16 @@ class RawDataPageParser(RawDataPageParserBase):
     @classmethod
     def parseRawDataPageContent(cls,page_content):
 
-        logger.info('Parsing new page')
+        logger.info('Starting raw data page parse')
         rawPageData={
             'date':None,
             'entries': [
             #      {
-            #       'class_abrv': None,
-            #       'car_num': None,
-            #       'driver_name': None,
-            #       'car_model': None,
-            #       'raw_time': None,
+            #       'class_abrv': str,
+            #       'car_num': str,
+            #       'driver_name': str,
+            #       'car_model': str,
+            #       'raw_time': str,
             #       },...
             ]
             }
@@ -157,9 +157,10 @@ class RawDataPageParser(RawDataPageParserBase):
 
         for row in entry_rows:
             entry = {}
-            entry_rows = row.find_all('td')
 
-            columns = [*map(lambda x: x.get_text(), entry_rows)]
+            entry_columns = row.find_all('td')
+
+            columns = [*map(lambda x: x.get_text(), entry_columns)]
 
             entry['class_abrv'] = columns[2]
             entry['car_num'] = columns[3]
@@ -183,17 +184,17 @@ class PaxDataPageParser(PaxDataPageParserBase):
    
     @classmethod
     def parseRawDataPageContent(cls,page_content):
-        logger.info('Starting Pax page parse')
+        logger.info('Starting PAX data page parse')
         paxPageData={
             'date':None,
             'entries': [
             #      {
-            #       'class_abrv': None,
-            #       'car_num': None,
-            #       'driver_name': None,
-            #       'car_model': None,
-            #       'pax_factor': None,
-            #       'pax_time' : None
+            #       'class_abrv': str,
+            #       'car_num': str,
+            #       'driver_name': str,
+            #       'car_model': str,
+            #       'pax_factor': str,
+            #       'pax_time' : str
             #       },...
             ]
             }
@@ -221,9 +222,10 @@ class PaxDataPageParser(PaxDataPageParserBase):
 
         for row in entry_rows:
             entry = {}
-            entry_rows = row.find_all('td')
+            entry_columns = row.find_all('td')
 
-            columns = [*map(lambda x: x.get_text(), entry_rows)]
+            #Convert all columns to text
+            columns = [*map(lambda x: x.get_text(), entry_columns)]
 
             entry['class_abrv'] = columns[2]
             entry['car_num'] = columns[3]
@@ -245,6 +247,89 @@ class FinalDataPageParser(FinalDataPageParserBase):
     
     @classmethod
     def parseFinalDataPageContent(cls,page_content):
-        pass
+        logger.info('Starting final data page parse')
+        finalPageData={
+            'date':None,
+        #   'class_entries': [
+            #       {
+            #       'race_class_abrv': str,
+            #       'race_class_name': str,
+            #       'entries: [
+            #            {
+            #             'class_abrv': str,
+            #             'car_num': str,
+            #             'driver_name': str,
+            #             'car_model': str,
+            #             'car_color': str,
+            #             'has_trophy': bool,
+            #             'runs': [
+            #                       {
+            #                        'time': str,
+            #                        'isDNF':bool,
+            #                        'numPenalties': bool,
+            #                        }
+            #                     ]
+            #             },...
+            #       },...
+            #       ]
+            #   ]
+            }
+
+        soup = BeautifulSoup(page_content,'html.parser')
+
+        #Gets header and main table
+        body = soup.find('body')
+
+        page_headers = body.find('table',recursive=False).find('tbody',recursive=False)
+
+        main_content_rows = body.find('a',recursive=False)   \
+                            .find_all('table',recursive=False)[1]   \
+                            .find('tbody',recursive=False)  \
+                            .find_all('tr',recursive=False)
+
+
+        #Get date
+        main_header_text = page_headers.find_all('tr')[1].find('th').get_text()
+        
+        finalPageData['date'] = re.search('\\d\\d-\\d\\d-\\d\\d\\d\\d',main_header_text).group(0)
+
+        logger.info(f'Found date: {finalPageData['date']}')
+
+
+        #Process rows
+
+        class_entries = {''}
+        for row in main_content_rows:
+            columns = row.find_all('th',recursive=False)
+            for column in columns:
+                logger.info(column.get_text())
+
+
+        
+
+
+
+
+
+
+        # for row in entry_rows:
+        #     entry = {}
+        #     entry_rows = row.find_all('td')
+
+        #     columns = [*map(lambda x: x.get_text(), entry_rows)]
+
+        #     entry['class_abrv'] = columns[2]
+        #     entry['car_num'] = columns[3]
+        #     entry['driver_name'] = columns[4]
+        #     entry['car_model'] = columns[5]
+        #     entry['pax_factor'] = columns[7][1:]
+        #     entry['pax_time'] = columns[8]
+
+        #     logger.info(f'Found entry: {entry}')
+
+        #     #Add entry to page entry list
+        #     paxPageData['entries'].append(entry)
+
+        return finalPageData
     
     

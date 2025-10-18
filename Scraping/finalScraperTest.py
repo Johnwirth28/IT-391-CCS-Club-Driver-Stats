@@ -12,7 +12,7 @@ def main():
     with open('Scraping/2025Pages/SampleFinal.htm','r',encoding='utf-8') as file:
         content = file.read()
 
-    FinalDataPageParser.scrapeFinalDataPageContent()
+    FinalDataPageParser.parseFinalDataPageContent(content)
 
     return 1
 
@@ -29,5 +29,5 @@ def main():
 
 
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     main()

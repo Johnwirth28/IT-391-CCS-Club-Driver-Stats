@@ -1,3 +1,4 @@
 output_print.txt
 logs/
-Scraping/_pycache_/
+Scraping/__pycache__/.*
+Scraping/__pycache__/Parser.cpython-313.pyc
