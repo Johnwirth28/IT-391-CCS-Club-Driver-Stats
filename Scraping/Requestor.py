@@ -1,9 +1,10 @@
 import requests
 from abc import ABC,abstractmethod
 import logging
-import datetime
+from datetime import datetime
 import time
 from random import randint
+import emoji
 
 #Logging
 logger = logging.getLogger(__name__)
@@ -77,7 +78,7 @@ class Requestor(RequestorBase):
             
             logger.debug(f'link[{index}] request to {links[index]}')
 
-            content = self.__getPage(links[index])
+            content = self.__getContent(links[index])
             
             logger.debug(f'Response code: {content['status_code']}')
 
@@ -95,7 +96,7 @@ class Requestor(RequestorBase):
     
     #Makes single request and returns html page content
     #Returns dict in form {'link':link, 'status_code':status_code,'content':content}
-    def makeRequest(self,link,delay=0):
+    def makeRequest(self,link,delay=0,params=None):
         logger.debug(f'Sending request to {link}')
 
         if(delay > 0):
@@ -103,7 +104,7 @@ class Requestor(RequestorBase):
             rand_delay = self.__getRandDelayInSeconds(delay,self.__padding_factor)
             time.sleep(rand_delay)
 
-        content = self.__getPage(link)
+        content = self.__getContent(link,params)
             
         logger.debug(f'Response code: {content['status_code']}')
 
@@ -112,12 +113,14 @@ class Requestor(RequestorBase):
     
 
     #Returns html page or None
-    def __getPage(self,link):
-        req = self.__session.get(link)
+    def __getContent(self,link,params=None):
+        req = self.__session.get(link,params=params)
         dict = {}
         dict['link'] = link
         dict['status_code'] = req.status_code
         dict['content'] = req.text
+        if dict['content']:
+            dict['content'] = emoji.replace_emoji(dict['content'],'')
         return dict
     
     def __getRandDelayInSeconds(self,duration_ms,padding_factor):
@@ -147,3 +150,54 @@ class Requestor(RequestorBase):
     
     def getPadding(self):
         return self.__padding
+    
+
+
+
+    
+class WeatherRequestor(Requestor):
+
+    __URL = 'https://archive-api.open-meteo.com/v1/archive'
+    __DEF_LAT = 40.507999747027796 
+    __DEF_LON = -88.99071849002091
+    __DEF_TZ = '-05:00'
+
+    def __init__(self,apikey, session=None, allowed_requests=1000, interval_ms=2500, padding_factor=5):
+        super().__init__(session, allowed_requests, interval_ms, padding_factor)
+        
+        if apikey:
+            self.__apikey = apikey
+        else:
+            raise ValueError('Api key needed')
+       
+
+    #Gets weather data for requested parameters
+    #Datetime must be in YYYY-MM-DD
+    def getWeatherJsonFromDate(self,datetime,lat=__DEF_LAT,lon=__DEF_LON,tz=__DEF_TZ,delay=0):
+
+        args = {'latitude':lat,
+                 'longitude':lon,
+                 'start_date': datetime,
+                 'end_date': datetime,
+                 'daily': 'temperature_2m_max,temperature_2m_min,wind_direction_10m_dominant,wind_speed_10m_max,weather_code,precipitation_sum,precipitation_hours'.split(','),
+                 'temperature_unit':'fahrenheit',
+                 'wind_speed_unit':'mph',
+                 'precipitation_unit':'inch',
+                 'tz': 'America%2FChicago',
+        }
+        
+        logger.info(f'Making weather api call with args {args}')
+
+        
+        
+        response = super().makeRequest(self.__URL,params=args,delay=delay)
+
+        logger.debug(f'API call returned {response}')
+
+
+        return response['content'] if response['status_code'] == 200 else None
+        
+        
+
+
+
