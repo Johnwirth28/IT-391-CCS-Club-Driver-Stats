@@ -1,5 +1,5 @@
 .taskbar {
-    background-color: grey;
+    background-color: rgb(129, 18, 18);
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -25,7 +25,7 @@
 }
 
 .taskbar    a:hover{
-    background-color: grey;
+    background-color: rgb(129, 18, 18);
     color: black;
 }
 
@@ -38,7 +38,7 @@
 
 .dropbtn{
     text-align: center;
-    background-color: grey;
+    background-color: rgb(129, 18, 18);
     color: white;
     padding: 14px 16px;
     font-family: inherit;
@@ -51,7 +51,7 @@
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: grey;
+    background-color: rgb(129, 18, 18);
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;

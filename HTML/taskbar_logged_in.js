@@ -43,8 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const signOutLink = document.createElement("a");
     signOutLink.textContent = "Sign Out";
-    signOutLink.href = "index.html";//change this
-
+    signOutLink.href = "driver_status_home.html"
     dropdownContent.appendChild(profileLink);
     dropdownContent.appendChild(garageLink);
     dropdownContent.appendChild(signOutLink);
