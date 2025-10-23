@@ -1,47 +1,56 @@
-// Import required libraries
-import express from "express";
-import XLSX from "xlsx";
-import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// === Path setup for ES Modules ===
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// === Express app setup ===
+const express = require("express");
+const fetch = require("node-fetch");
 const app = express();
-app.use(cors());
+const PORT = 3000;
 
-// Serve static files (HTML, JS, CSS)
-app.use(express.static(__dirname));
+// Serve static files (if not already added)
+app.use(express.static("HTML"));
 
-// === Port and Excel file path ===
-const PORT = process.env.PORT || 3000;
-const EXCEL_PATH = path.join(__dirname, "race_data.xlsx");
+// Load event data (rename your .txt file to .json if needed)
+const eventData = require("./ExampleEventPageScraperOutput.json");
 
-// === Homepage route ===
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "driver_status_home.html"));
+// Route 1: Get race results
+app.get("/api/races", async (req, res) => {
+  const races = [];
+
+  for (const sessionDate in eventData.sessions) {
+    const session = eventData.sessions[sessionDate][0]; // raw session
+    const date = session.data.date;
+    const entries = session.data.entries;
+
+    for (const entry of entries) {
+      races.push({
+        date,
+        driver: entry.driver_name,
+        car: entry.car_model,
+        raw_time: entry.raw_time,
+        class: entry.class_abrv,
+      });
+    }
+  }
+
+  res.json(races);
 });
 
-// === API route: get Excel data as JSON ===
-app.get("/api/results", (req, res) => {
+// Route 2: Get weather for a date
+app.get("/api/weather/:date", async (req, res) => {
+  const date = new Date(req.params.date);
+  const timestamp = Math.floor(date.getTime() / 1000);
+  const lat = 40.1164; // Champaign, IL
+  const lon = -88.2434;
+  const apiKey = "4fe622efc66879c6e0c78c0b4e647fe3";
+
+  const url = `https://api.openweathermap.org/data/3.0/onecall/timemachine?lat=${lat}&lon=${lon}&dt=${timestamp}&appid=${apiKey}&units=imperial`;
+
   try {
-    const workbook = XLSX.readFile(EXCEL_PATH);     // Read Excel file
-    const sheetName = workbook.SheetNames[0];       // Get first sheet
-    const sheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(sheet);   // Convert to JSON
-    res.json(data);                                 // Send to frontend
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    console.error("❌ Error reading Excel file:", err);
-    res.status(500).json({ error: "Failed to read race data" });
+    res.status(500).json({ error: "Weather fetch failed", details: err.message });
   }
 });
 
-// === Start the server ===
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`🌐 Live site: https://friendly-halibut-jjwxvwgwqwqrh5w79-${PORT}.app.github.dev/`);
-});
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
 
