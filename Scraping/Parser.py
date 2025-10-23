@@ -366,45 +366,7 @@ class FinalDataPageParser(FinalDataPageParserBase):
         finalPageData['class_entries'] = class_entries
         
                            
-                        
-                            
-
-
-
                 
-
-
-
-
-            # columns = row.find_all('th',recursive=False)
-            # for column in columns:
-            #     logger.info(column.get_text())
-
-
-        
-
-
-
-
-
-
-        # for row in entry_rows:
-        #     entry = {}
-        #     entry_rows = row.find_all('td')
-
-        #     columns = [*map(lambda x: x.get_text(), entry_rows)]
-
-        #     entry['class_abrv'] = columns[2]
-        #     entry['car_num'] = columns[3]
-        #     entry['driver_name'] = columns[4]
-        #     entry['car_model'] = columns[5]
-        #     entry['pax_factor'] = columns[7][1:]
-        #     entry['pax_time'] = columns[8]
-
-        #     logger.info(f'Found entry: {entry}')
-
-        #     #Add entry to page entry list
-        #     paxPageData['entries'].append(entry)
 
         return finalPageData
     
