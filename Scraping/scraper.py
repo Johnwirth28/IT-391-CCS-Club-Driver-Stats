@@ -1,44 +1,28 @@
-
-
-import pickle
-
 from datetime import datetime
 import sys
 import logging
 from Requestor import Requestor
-from Parser import EventPageParser,RawDataPageParser,PaxDataPageParser, FinalDataPageParser
+from EventPageScraper import EventPageScraper
+import json
 
 #Logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logging.basicConfig(filename=datetime.now().strftime('logs/scraper%m.%d.%Y.%H.%M.%S.log'))
+file_handler = logging.FileHandler(datetime.now().strftime('logs/scraper%m.%d.%Y.%H.%M.%S.log'))
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',datefmt='%m/%d/%Y %I:%M:%S %p')
+file_handler.setFormatter(formatter)
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(formatter)
+
+logging.basicConfig(level=logging.DEBUG,handlers=[file_handler,stream_handler])
+
+sys.stderr = open(datetime.now().strftime('logs/err%m.%d.%Y.%H.%M.%S.log'),'w')
 
 
 #Config
 
 NEW_CALL = False
-
-
-
-#-----------------Helper Funcs--------------#
-
-def printEvents(events):
-    for item in events:
-        print("Event {}:".format(events.index(item)))
-        for key,value in item.items():
-            if type(value) == list:
-                print('{}:'.format(key))
-                if len(value) != 0:
-                    for i in value:
-                        print('\t{}'.format(i))
-                else:
-                    print('No links found')
-            else:
-                print("{}: {}".format(key,value))
-        print()
-
-    
-
 
 #Workspace
 
@@ -48,23 +32,13 @@ def main():
     origin_url = 'https://ccsportscarclub.org/autocross/schedule/'
     
     
-    requestor = Requestor(None,interval_ms=10000)
+    requestor = Requestor(None,interval_ms=2500,padding_factor=4)
     
-    origin_data = requestor.makeRequest(origin_url)
+    scraper = EventPageScraper(requestor)
 
-    if origin_data['status_code'] != 200:
-        print('Origin url request failed.\nExiting...')
-        exit(1)
-        
-    origin_events = EventPageParser.scrapeEventsPageContent(origin_data['contents'])
-
-    for event in origin_events:
-        for link_bundle in event['session_data_links']:
-            response = requestor.makeRequest(link_bundle[0])
-            if response['status_code'] == 200:
-                link_bundle[1] = response['content']
+    result_json = scraper.scrapeEventsAndData(origin_url)
                 
-    
+    logger.info(json.dumps(result_json,indent=5,sort_keys=True))
     return 1
     
 

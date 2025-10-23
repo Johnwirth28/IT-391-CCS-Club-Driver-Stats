@@ -7,7 +7,6 @@ from random import randint
 
 #Logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 #Method for making requests
@@ -76,11 +75,11 @@ class Requestor(RequestorBase):
 
         while(index < num_links and self.__allowed_requests > 0):
             
-            logger.info(f'link[{index}] request to {links[index]}')
+            logger.debug(f'link[{index}] request to {links[index]}')
 
             content = self.__getPage(links[index])
             
-            logger.info(f'Response code: {content['status_code']}')
+            logger.debug(f'Response code: {content['status_code']}')
 
             response_list.append(content)
         
@@ -94,8 +93,10 @@ class Requestor(RequestorBase):
     
         return response_list
     
+    #Makes single request and returns html page content
+    #Returns dict in form {'link':link, 'status_code':status_code,'content':content}
     def makeRequest(self,link,delay=0):
-        logger.info(f'Request to {link}')
+        logger.debug(f'Sending request to {link}')
 
         if(delay > 0):
             
@@ -104,7 +105,7 @@ class Requestor(RequestorBase):
 
         content = self.__getPage(link)
             
-        logger.info(f'Response code: {content['status_code']}')
+        logger.debug(f'Response code: {content['status_code']}')
 
         self.__allowed_requests -= 1
         return content

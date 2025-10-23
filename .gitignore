@@ -2,3 +2,7 @@ output_print.txt
 logs/
 Scraping/__pycache__/.*
 Scraping/__pycache__/Parser.cpython-313.pyc
+Scraping/__pycache__/EventPageScraper.cpython-313.pyc
+Scraping/__pycache__/Parser.cpython-313.pyc
+Scraping/__pycache__/Requestor.cpython-313.pyc
+Scraping/__pycache__/Parser.cpython-313.pyc

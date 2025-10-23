@@ -1,0 +1,16 @@
+
+#Json format for storing scraped events page
+
+
+#EventPageParser response:
+{
+    'timestamp': some time in '%Y-%m-%d %H:%M:%S'
+    'events': [
+        {
+            'link': link | None
+            'chairs': [chair1,chair2]
+            'name': somename
+            'session_data_links': [link1,link2,...]
+        },
+    ]
+}

@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 from datetime import datetime
 import re
+import json
 
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logging.basicConfig(filename=datetime.now().strftime(f'logs/{__name__}%m.%d.%Y.%H.%M.%S.log'))
+
 
 
 #Provides methods for extracting html content from CCSCC events page
@@ -39,7 +39,7 @@ class PaxDataPageParserBase(ABC):
 
     @classmethod
     @abstractmethod
-    def parseRawDataPageContent(cls,page_content):
+    def parsePaxDataPageContent(cls,page_content):
         raise NotImplementedError
     
 #Provides methods for extracting html content from CCSCC final data pages
@@ -62,13 +62,14 @@ class EventPageParser(EventPageParserBase):
     def parseEventsPageContent(cls,page_content):
         soup = BeautifulSoup(page_content,'html.parser')
 
+        event_page_dict = {'events':None}
         events = []
 
         key_table_item = soup.find("strong",string="Event",recursive=True)
         
         if key_table_item is None:
-            print("Failed to find first event")
-            exit(1)
+            logger.error('Failed to find first event')
+            raise ValueError('Failed to find first event')
         
         event_rows = key_table_item.find_parent().find_parent().find_next_siblings()
         
@@ -76,7 +77,9 @@ class EventPageParser(EventPageParserBase):
         for item in event_rows:
             events.append(cls.__parseEventTableRow(item))
         
-        return events
+        event_page_dict['events']=events
+        
+        return event_page_dict
     
     # Returns dictionary with event data
     @classmethod
@@ -104,7 +107,7 @@ class EventPageParser(EventPageParserBase):
         columns["name"] = children[4].contents[0]
         
         # Get event sessions
-        session_links = [*map(lambda x :[x.get('href'),None] ,children[4].find_all('a'))]
+        session_links = [*map(lambda x : x.get('href'),children[4].find_all('a'))]
         columns["session_data_links"] = session_links
         
 
@@ -120,7 +123,7 @@ class RawDataPageParser(RawDataPageParserBase):
     @classmethod
     def parseRawDataPageContent(cls,page_content):
 
-        logger.info('Starting raw data page parse')
+        logger.debug('Starting raw data page parse')
         rawPageData={
             'date':None,
             'entries': [
@@ -147,7 +150,7 @@ class RawDataPageParser(RawDataPageParserBase):
         
         rawPageData['date'] = re.search('\\d\\d-\\d\\d-\\d\\d\\d\\d',main_header_text).group(0)
 
-        logger.info(f'Found date: {rawPageData['date']}')
+        logger.debug(f'Found date: {rawPageData['date']}')
 
         
         entry_rows = entry_table.find_all('tr')
@@ -168,7 +171,7 @@ class RawDataPageParser(RawDataPageParserBase):
             entry['car_model'] = columns[5]
             entry['raw_time'] = columns[6]
 
-            logger.info(f'Found entry: {entry}')
+            logger.debug(f'Found entry: {entry}')
 
             #Add entry to page entry list
             rawPageData['entries'].append(entry)
@@ -183,8 +186,8 @@ class RawDataPageParser(RawDataPageParserBase):
 class PaxDataPageParser(PaxDataPageParserBase):
    
     @classmethod
-    def parseRawDataPageContent(cls,page_content):
-        logger.info('Starting PAX data page parse')
+    def parsePaxDataPageContent(cls,page_content):
+        logger.debug('Starting PAX data page parse')
         paxPageData={
             'date':None,
             'entries': [
@@ -212,7 +215,7 @@ class PaxDataPageParser(PaxDataPageParserBase):
         
         paxPageData['date'] = re.search('\\d\\d-\\d\\d-\\d\\d\\d\\d',main_header_text).group(0)
 
-        logger.info(f'Found date: {paxPageData['date']}')
+        logger.debug(f'Found date: {paxPageData['date']}')
 
         
         entry_rows = entry_table.find_all('tr')
@@ -234,7 +237,7 @@ class PaxDataPageParser(PaxDataPageParserBase):
             entry['pax_factor'] = columns[7][1:]
             entry['pax_time'] = columns[8]
 
-            logger.info(f'Found entry: {entry}')
+            logger.debug(f'Found entry: {entry}')
 
             #Add entry to page entry list
             paxPageData['entries'].append(entry)
@@ -247,7 +250,7 @@ class FinalDataPageParser(FinalDataPageParserBase):
     
     @classmethod
     def parseFinalDataPageContent(cls,page_content):
-        logger.info('Starting final data page parse')
+        logger.debug('Starting final data page parse')
         finalPageData={
             'date':None,
         #   'class_entries': [
@@ -266,7 +269,7 @@ class FinalDataPageParser(FinalDataPageParserBase):
             #                       {
             #                        'time': str,
             #                        'isDNF':bool,
-            #                        'numPenalties': bool,
+            #                        'num_penalties': bool,
             #                        }
             #                     ]
             #             },...
@@ -293,16 +296,89 @@ class FinalDataPageParser(FinalDataPageParserBase):
         
         finalPageData['date'] = re.search('\\d\\d-\\d\\d-\\d\\d\\d\\d',main_header_text).group(0)
 
-        logger.info(f'Found date: {finalPageData['date']}')
+        logger.debug(f'Found date: {finalPageData['date']}')
 
 
         #Process rows
 
-        class_entries = {''}
+
+        class_entries = []
+
+        class_entry = {}
+
+        max_run_num = len(main_content_rows[0].find_all('th',string=re.compile(r"^.*Run.*$")))
+
         for row in main_content_rows:
-            columns = row.find_all('th',recursive=False)
-            for column in columns:
-                logger.info(column.get_text())
+
+            children = row.find_all_next()
+            is_header = children[0].name == 'th'
+
+            if is_header:
+                if class_entry:
+                    class_entries.append(class_entry)
+                    class_entry = {}
+
+                header_info = children[0].get_text()
+                logger.debug(f'Found header {header_info}')
+                extracted_items = re.compile(r"^\s(\w*).*'(.+)'").match(header_info)
+                class_entry['race_class_abrv'] = extracted_items.group(1)
+                class_entry['race_class_name'] = extracted_items.group(2)
+                class_entry['entries'] = []
+                logger.debug(class_entry)
+
+            else:
+
+                race_entry = {}
+                race_entry['runs'] = []
+                for index, column in enumerate(children):
+                    text = column.get_text()
+                    match index:
+
+                        case 0:
+                            race_entry['has_trophy'] = True if re.search(r"T",text) else False
+                        case 1:
+                            race_entry['class_abrv'] = text
+                        case 2:
+                            race_entry['car_num'] = text
+                        case 3:
+                            race_entry['driver_name'] = text
+                        case 4:
+                            race_entry['car_model'] = text
+                        case 5:
+                            race_entry['car_color'] = text
+                        case _:
+                            run = {}
+                            if text and index < max_run_num + 6:
+                                logger.debug(f'Examing run text: \'{text}\'')
+                                match = re.search(r"^.(?P<time>\d*.\d*)(\+((?P<dnf>DNF)|(?P<pen>\d)))?",text)
+                                run['time'] = match.group('time')
+                                run['isDNF'] = True if match.group('dnf') else False
+                                penalties = match.group('pen')
+                                run['num_penalties'] = penalties if penalties else 0
+                                race_entry['runs'].append(run)
+                                run = {}
+                            else:
+                                class_entry['entries'].append(race_entry)
+                                race_entry = {}
+                                race_entry['runs'] = []
+                                break
+                                
+        finalPageData['class_entries'] = class_entries
+        
+                           
+                        
+                            
+
+
+
+                
+
+
+
+
+            # columns = row.find_all('th',recursive=False)
+            # for column in columns:
+            #     logger.info(column.get_text())
 
 
         
