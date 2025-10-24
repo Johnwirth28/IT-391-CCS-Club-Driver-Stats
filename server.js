@@ -22,7 +22,7 @@ const EXCEL_PATH = path.join(__dirname, "race_data.xlsx");
 
 // === Homepage route ===
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "driver_status_home.html"));
+  res.sendFile(path.join(__dirname, "HTML", "driver_status_home.html"));
 });
 
 // === API route: get Excel data as JSON ===

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCS Club Driver Stats</title>
+  <!--<link rel="stylesheet" href="taskbar_logged_in.css">-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+
+<style>
+    body {
+        margin: 5;
+        font-family: Arial, sans-serif;
+    }
+    h1 {
+            text-align: center;
+            color: #333;
+        }
+    
+
+</style>
+</head>
+
+<body>
+
+    <h1>
+        <button onclick="window.location.href='driver_status_home.html';" style="font-size: inherit; background: none; border: none; color: inherit; cursor: pointer;">
+    
+
+            CCS Club Driver Stats
+        </button>
+    </h1>
+
+    <div id="taskbar-container"></div>
+
+    <h2>Welcome, {{ user.username }}</h2>
+    <p>Email: {{ user.email }}</p>
+    <p>Driver Name: {{ user.drivername }}</p>
+    <p>Username: {{ user.username }}</p>
+
+
+    <!--<script src="taskbar_logged_in.js"></script>-->
+    <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+
+</body>
+</html>
