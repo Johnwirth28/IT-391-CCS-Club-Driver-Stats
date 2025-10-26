@@ -179,7 +179,7 @@ class WeatherRequestor(Requestor):
                  'longitude':lon,
                  'start_date': datetime,
                  'end_date': datetime,
-                 'daily': 'temperature_2m_max,temperature_2m_min,wind_direction_10m_dominant,wind_speed_10m_max,weather_code,precipitation_sum,precipitation_hours'.split(','),
+                 'daily': 'temperature_2m_max,temperature_2m_min,wind_direction_10m_dominant,wind_speed_10m_max,weather_code,precipitation_sum,precipitation_hours,pressure_msl_mean'.split(','),
                  'temperature_unit':'fahrenheit',
                  'wind_speed_unit':'mph',
                  'precipitation_unit':'inch',
