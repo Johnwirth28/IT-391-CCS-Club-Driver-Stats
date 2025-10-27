@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCSCC Driver Stats</title> 
+  <link rel="stylesheet" href="taskbar_logged_in.css">
+  <link rel="stylesheet" href="widgets.css">
+  <link rel="stylesheet" href="header.css">
+  <style>
+      body {
+          margin: 5;
+          font-family: Arial, sans-serif;
+      }
+    
+    
+  
+   
+</style>
+</head>
+
+<body>
+    <h1 class = "h1_style">
+        
+        <button onclick="window.location.href='driver_status_logged_in_home.html';" class="h1_button_style">
+            
+            <image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+
+        </button>
+        <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+
+    </h1>
+
+    <div id="taskbar-container"></div>
+
+    <div class ="widgets">
+        <div class ="widget">
+            <button onclick="window.location.href='stats_logged_in.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+             Driver Stats
+            </button>
+            <p>input driver stats here</p>
+        </div>
+        <div class ="widget">
+            <button onclick="window.location.href='personal_stats.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+            Personal Stats
+        </button>
+            <p>input personal stats here</p>
+        </div>
+
+        <div class ="widget">
+            <button onclick="window.location.href='garage.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+            Garage
+        </button>
+            <p>input garage here</p>
+        </div>
+
+        <div class ="widget">
+            <button onclick="window.location.href='weather.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+            Weather
+        </button>
+            <p>input weather info here</p>
+        </div>
+    </div>
+
+        <script src="taskbar_logged_in.js"></script>
+</body>
+</html>

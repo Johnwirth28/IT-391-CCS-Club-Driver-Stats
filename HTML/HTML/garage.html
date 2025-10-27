@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCSCC Driver Stats</title>
+    <link rel="stylesheet" href="taskbar_logged_in.css">
+    <link rel="stylesheet" href="garage.css">
+    <link rel="stylesheet" href="header.css">
+  <style>
+      body {
+          margin: 5;
+          font-family: Arial, sans-serif;
+      }
+    
+
+
+    
+   
+</style>
+</head>
+
+<body>
+    <h1 class = "h1_style">
+        
+        <button onclick="window.location.href='driver_status_logged_in_home.html';" class="h1_button_style">
+           
+            <image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+
+        </button>
+        <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+
+    </h1>
+    <div id="taskbar-container"></div>
+
+    <div class = "buttons">
+            <button class="action-btn" onclick="showAddCar()">Add Car</button>
+            <button class="action-btn" onclick="removeAllCars()">Remove All Cars</button>
+    </div>
+       
+
+    <div class ="widgets">
+        <div class ="widget">
+            <h2>Cars</h2>
+            <p>Car's you owns</p>
+            <div id ="add-car" style ="display: none; margin-bottom: 20px;"> 
+                <p> Car Make </p>
+                <div class = "input-group">
+                    
+                    <input type="text" id="car-make" placeholder="Enter the car's make">
+                </div>
+                <p> Car Model </p>
+                <div class = "input-group">
+                    <input type="text" id="car-model" placeholder="Enter the car's model">
+                </div>
+                <p> Car Year </p>
+                <div class = "input-group">
+                    <input type="text" id="car-year" placeholder="Enter the car's year">
+                </div>
+                <p> Car Color </p>
+                <div class = "input-group">
+                    <input type="text" id="car-color" placeholder="Enter the car's color">
+                </div>
+                <p> Car Weight </p>
+                <div class = "input-group">
+                    <input type="text" id="car-weight" placeholder="Enter the car's weight">
+                </div>
+                <p> Car Tire Description </p>
+                <div class = "input-group">
+                    <input type="text" id="car-tire" placeholder="Enter the car's wheel description">
+                </div>
+                <p> Car Mods </p>
+                <div class = "input-group">
+                    <input type="text" id="car-mods" placeholder="Enter the car's mods">
+                </div>
+
+                <div class = "input-group">
+                    <button onclick = "addCar()">Add Car</button>
+                </div>
+
+            </div>
+
+            <ul id = "car-list" class="car-list"></ul>
+        </div>
+
+    
+
+    </div>
+
+    <script src="taskbar_logged_in.js"></script>
+    <script src="garage.js"></script>
+</body>
+</html>
