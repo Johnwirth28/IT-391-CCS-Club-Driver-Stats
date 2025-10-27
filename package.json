@@ -1,7 +1,7 @@
 {
   "name": "ccscc-race-api",
   "version": "1.0.0",
-  "description": "API to serve CCS Club Driver Stats from Excel",
+  "description": "API to serve CCSCC Stats from Excel",
   "main": "server.js",
   "type": "module",
   "scripts": {

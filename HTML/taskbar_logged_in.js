@@ -2,11 +2,20 @@
 document.addEventListener("DOMContentLoaded", () => {
     const links = [
         {text: "Home", href : "driver_status_logged_in_home.html"},
-        {text: "Event Schedule", href : "schedule_race_logged_in.html"},
+        {text: "Event Schedule", href : "schedule_event_logged_in.html"},
         {text: "Stats", href : "logged_in_stats.html"},
         {text: "Personal Stats", href : "personal_stats.html"},
         {text: "Weather", href : "weather.html"},
     ];
+
+    // Create hamburger button
+    const hamburger = document.createElement("button");
+    hamburger.className = "hamburger";
+    for(let i = 0; i < 3; i++) {
+        const bar = document.createElement("span");
+        bar.className = "bar";
+        hamburger.appendChild(bar);
+    }
 
     const taskbar = document.createElement("div");
     taskbar.className = "taskbar";
@@ -43,8 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const signOutLink = document.createElement("a");
     signOutLink.textContent = "Sign Out";
-    signOutLink.href = "index.html";//change this
-
+    signOutLink.href = "driver_status_home.html"
     dropdownContent.appendChild(profileLink);
     dropdownContent.appendChild(garageLink);
     dropdownContent.appendChild(signOutLink);
@@ -55,7 +63,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+        // Add hamburger button to taskbar
+        taskbar.insertBefore(hamburger, taskbar.firstChild);
         document.getElementById("taskbar-container").appendChild(taskbar);
+
+        // Add hamburger menu click functionality
+        hamburger.addEventListener("click", () => {
+            taskbar.classList.toggle("active");
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!taskbar.contains(e.target) && taskbar.classList.contains("active")) {
+                taskbar.classList.remove("active");
+            }
+        });
 });
 
 

@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>CCSCC Stats</title>
-  <link rel="stylesheet" href="taskbar_logged_in.css">
 <style>
     body {
         margin: 5;
@@ -13,7 +12,33 @@
             text-align: center;
             color: #333;
         }
-   
+    /*task bar*/
+    .taskbar{
+        background-color: rgb(129, 18, 18);
+        overflow: hidden;
+    }
+
+    .taskbar a{
+        float: left;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+
+    }
+
+    .taskbar a.right{
+        float: right;
+    }
+
+    .taskbar    a:hover{
+        background-color: grey;
+        color: black;
+    }
+
+
+    
 
 </style>
 </head>
@@ -32,6 +57,6 @@
     </h1>
     <div id="taskbar-container"></div>
 
-    <script src="taskbar_logged_in.js"></script>
+    <script src="taskbar.js"></script>
 </body>
 </html>
