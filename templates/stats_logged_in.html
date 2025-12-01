@@ -1,67 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CCSCC Driver Stats</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
-  
-
-<style>
-    body {
-        margin: 5;
-        font-family: Arial, sans-serif;
-    }
-  
-
-
-    
-</style>
+    <meta charset="UTF-8">
+    <title> Stats + Weather</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+ 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+ 
+        h2 {
+            margin-top: 40px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+ 
+        .controls {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+ 
+        select {
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+ 
+        table {
+            margin: 25px auto;
+            border-collapse: collapse;
+            width: 90%;
+        }
+ 
+        th, td {
+            border: 1px solid #444;   /* LESS BOLD */
+            padding: 8px;
+            font-size: 15px;
+        }
+ 
+        th {
+            background: #800000;
+            color: white;
+            font-weight: bold;
+        }
+ 
+        td {
+            background: white;
+            text-align: left;
+        }
+ 
+        .fastest {
+            margin-top: 20px;
+            font-size: 19px;
+            font-weight: bold;
+        }
+ 
+        /* Smaller chart container */
+        #chartContainer {
+            width: 45%;
+            height: 240px;    /* MAKE CHART SHORTER */
+            margin: 35px auto;
+        }
+    </style>
 </head>
-
-<body>
+ 
+<body> 
     <h1 class = "h1_style">
         
         <!--<button onclick="window.location.href='driver_status_home.html';" class="h1_button_style">
-
+    
             <image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px; padding-top: 20px; ">
-
+    
         </button>-->
-
+    
          <button onclick="window.location.href='/home_logged_in';" class="h1_button_style">
             
             <image src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
-        
-
+              </image>
+    
         </button>
         <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
-
+    
     </h1>
     <div id="taskbar-container"></div>
-    <!--
-    <div id="taskbar-container"></div>
-    <div class ="widgets">
-        <div class ="widget">
-        <button onclick="window.location.href='stats.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
-            Driver Stats
-        </button>
-            <p>input driver stats here</p>
-        </div>
-    </div>
-            
-    <div class ="widgets">
-        <div class ="widget">
-        <button onclick="window.location.href='stats.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;"> 
-        <button onclick="window.location.href='/stats_logged_in';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
-            Last Event
-        </button>
-            <p>October 18 & 19, 2025</p>
-       </div>
-    </div>-->
     
-    <!--<script src="taskbar.js"></script>-->
-    <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
-
+    <h2>Driver Performance + Weather Data</h2>
+    
+    <!-- Controls -->
+    <div class="controls">
+        <label>Sort by Event:</label>
+        <select id="sortSelect">
+            <option value="newest">Newest → Oldest</option>
+            <option value="oldest">Oldest → Newest</option>
+        </select>
+ 
+        &nbsp;&nbsp; | &nbsp;&nbsp;
+ 
+        <label>Select Event:</label>
+        <select id="eventSelect"></select>
+    </div>
+ 
+    <!-- Stats Table -->
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th>Driver</th>
+                <th>Date</th>
+                <th>Class</th>
+                <th>Raw Time (s)</th>
+                <th>PAX Time (s)</th>
+                <th>Penalties</th>
+                <th>Final Time (s)</th>
+                <th>High (°F)</th>
+                <th>Low (°F)</th>
+                <th>Precip (mm)</th>
+                <th>Conditions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+ 
+    <div class="fastest" id="fastestRaw"></div>
+    <div class="fastest" id="fastestPax"></div>
+ 
+    <!-- CHART -->
+    <div id="chartContainer">
+        <canvas id="eventChart"></canvas>
+    </div>
+ 
+    <script>
+        const fullData = {{ data|tojson }};
+        let chart;
+ 
+        function extractEvents() {
+            const events = [...new Set(fullData.map(s => s.event_date))].sort().reverse();
+            const eventSelect = document.getElementById("eventSelect");
+            eventSelect.innerHTML = "";
+            events.forEach(date => {
+                const opt = document.createElement("option");
+                opt.value = opt.textContent = date;
+                eventSelect.appendChild(opt);
+            });
+        }
+ 
+        function loadTable(eventDate) {
+            const rows = fullData.filter(s => s.event_date === eventDate);
+            const tbody = document.querySelector("#statsTable tbody");
+            tbody.innerHTML = "";
+ 
+            rows.forEach(stat => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${stat.driver}</td>
+                    <td>${stat.event_date}</td>
+                    <td>${stat.car_class}</td>
+                    <td>${stat.raw_time.toFixed(2)}</td>
+                    <td>${stat.pax_time.toFixed(2)}</td>
+                    <td>${stat.penalties}</td>
+                    <td>${stat.final_time.toFixed(2)}</td>
+                    <td>${stat.high_temp ?? "N/A"}</td>
+                    <td>${stat.low_temp ?? "N/A"}</td>
+                    <td>${stat.precip ?? "N/A"}</td>
+                    <td>${stat.conditions}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+ 
+            updateFastest(rows);
+            updateChart(rows, eventDate);
+        }
+ 
+        function updateFastest(rows) {
+            const fastestRaw = rows.reduce((a, b) => a.raw_time < b.raw_time ? a : b);
+            const fastestPax = rows.reduce((a, b) => a.pax_time < b.pax_time ? a : b);
+ 
+            document.getElementById("fastestRaw").textContent =
+                `🏁 Fastest Raw Time: ${fastestRaw.driver} — ${fastestRaw.raw_time.toFixed(2)}s`;
+ 
+            document.getElementById("fastestPax").textContent =
+                `⚡ Fastest PAX Time: ${fastestPax.driver} — ${fastestPax.pax_time.toFixed(2)}s`;
+        }
+ 
+        function updateChart(rows, eventDate) {
+            if (chart) chart.destroy();
+ 
+            const drivers = rows.map(r => r.driver);
+            const rawTimes = rows.map(r => r.raw_time);
+            const paxTimes = rows.map(r => r.pax_time);
+            const finalTimes = rows.map(r => r.final_time);
+ 
+            const ctx = document.getElementById("eventChart");
+ 
+            chart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: drivers,
+                    datasets: [
+                        { label: "Raw Time", data: rawTimes, backgroundColor: "#a00000", barThickness: 35 },
+                        { label: "PAX Time", data: paxTimes, backgroundColor: "#c04040", barThickness: 35 },
+                        { label: "Final Time", data: finalTimes, backgroundColor: "#e06060", barThickness: 35 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+ 
+                    plugins: {
+                        tooltip: { enabled: true },
+                        legend: { position: "top" }
+                    },
+ 
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+ 
+        document.getElementById("eventSelect").addEventListener("change", (e) => {
+            loadTable(e.target.value);
+        });
+ 
+        window.onload = () => {
+            extractEvents();
+            loadTable(document.getElementById("eventSelect").value);
+        };
+    </script>
+     <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+ 
 </body>
 </html>
