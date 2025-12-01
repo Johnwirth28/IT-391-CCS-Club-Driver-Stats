@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import mysql.connector
-
+import requests
+ 
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'  # Needed for flash messages
@@ -14,6 +15,70 @@ db = mysql.connector.connect(
     password="admin#ab12cd34",
     database="ccsccDB"
 )
+
+# ----------------------------
+# DRIVER DATA
+# ----------------------------
+driver_stats = [
+    {"driver": "Ninel Benitez", "event_date": "2024-10-18", "car_class": "STX", "raw_time": 55.23, "pax_index": 0.801, "penalties": 2},
+    {"driver": "Ava Smith", "event_date": "2024-09-22", "car_class": "GS", "raw_time": 54.89, "pax_index": 0.785, "penalties": 0},
+    {"driver": "Thaleina Cruz", "event_date": "2024-08-12", "car_class": "DS", "raw_time": 56.02, "pax_index": 0.796, "penalties": 1},
+    {"driver": "Carlos Martinez", "event_date": "2024-07-18", "car_class": "STR", "raw_time": 53.44, "pax_index": 0.799, "penalties": 0},
+    {"driver": "Brianna Lopez", "event_date": "2024-07-18", "car_class": "HS", "raw_time": 58.91, "pax_index": 0.795, "penalties": 1},
+    {"driver": "Marcus Green", "event_date": "2024-06-14", "car_class": "SS", "raw_time": 51.28, "pax_index": 0.812, "penalties": 0},
+    {"driver": "Ethan Miller", "event_date": "2024-06-14", "car_class": "GS", "raw_time": 52.30, "pax_index": 0.785, "penalties": 0},
+    {"driver": "Olivia Johnson", "event_date": "2024-06-14", "car_class": "ES", "raw_time": 59.72, "pax_index": 0.798, "penalties": 1},
+    {"driver": "Daniel Reyes", "event_date": "2024-05-20", "car_class": "STU", "raw_time": 57.19, "pax_index": 0.801, "penalties": 0},
+    {"driver": "Sofia Alvarez", "event_date": "2024-05-20", "car_class": "HS", "raw_time": 60.44, "pax_index": 0.795, "penalties": 1},
+    {"driver": "Mason Wright", "event_date": "2024-04-10", "car_class": "STS", "raw_time": 55.80, "pax_index": 0.802, "penalties": 0},
+    {"driver": "Isabella Flores", "event_date": "2024-04-10", "car_class": "GS", "raw_time": 58.20, "pax_index": 0.785, "penalties": 2},
+]
+
+
+# ----------------------------
+# WEATHER LOOKUP FUNCTION
+# ----------------------------
+def lookup_weather(date):
+    url = (
+        "https://archive-api.open-meteo.com/v1/archive"
+        f"?latitude=40.5142&longitude=-88.9906"
+        f"&start_date={date}&end_date={date}"
+        "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode"
+        "&timezone=America/Chicago"
+    )
+
+    try:
+        res = requests.get(url, timeout=10).json()
+        if "daily" not in res:
+            return {"high": None, "low": None, "precip": None, "conditions": "N/A"}
+
+        d = res["daily"]
+
+        high = round((d["temperature_2m_max"][0] * 9/5) + 32, 1)
+        low = round((d["temperature_2m_min"][0] * 9/5) + 32, 1)
+        precip = d["precipitation_sum"][0]
+
+        code_map = {
+            0: "Clear ☀️",
+            2: "Partly Cloudy ⛅",
+            3: "Overcast ☁️",
+            61: "Light Rain 🌧",
+            63: "Moderate Rain 🌧",
+            65: "Heavy Rain 🌧🌧"
+        }
+
+        cond = code_map.get(d["weathercode"][0], "Unknown")
+
+        return {
+            "high": high,
+            "low": low,
+            "precip": precip,
+            "conditions": cond
+        }
+
+    except:
+        return {"high": None, "low": None, "precip": None, "conditions": "N/A"}
+
 
 # -------------------------
 # ROUTES
@@ -52,7 +117,41 @@ def schedule_race_logged_in():
 
 @app.route('/stats_logged_in')
 def stats_logged_in():
-    return render_template('stats_logged_in.html')
+    stats_with_weather = []
+
+    for stat in driver_stats:
+        weather = lookup_weather(stat["event_date"])
+
+        raw = stat["raw_time"]
+        pax = round(raw * stat["pax_index"], 2)
+        final = round(raw + stat["penalties"] * 2, 2)
+
+        stats_with_weather.append({
+            "driver": stat["driver"],
+            "event_date": stat["event_date"],
+            "car_class": stat["car_class"],
+            "raw_time": raw,
+            "pax_time": pax,
+            "penalties": stat["penalties"],
+            "final_time": final,
+            "high_temp": weather["high"],
+            "low_temp": weather["low"],
+            "precip": weather["precip"],
+            "conditions": weather["conditions"]
+        })
+
+
+    # FASTEST CALCULATIONS
+    fastest_raw = min(stats_with_weather, key=lambda x: x["raw_time"])
+    fastest_pax = min(stats_with_weather, key=lambda x: x["pax_time"])
+
+    return render_template(
+        "stats_logged_in.html",
+        data=stats_with_weather,
+        fastest_raw=fastest_raw,
+        fastest_pax=fastest_pax
+    )
+
 
 @app.route('/personal_stats')
 def personal_stats():
@@ -225,4 +324,4 @@ def delete_car(car_id):
 # RUN FLASK
 # -------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port = 4000)
