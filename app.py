@@ -324,4 +324,5 @@ def delete_car(car_id):
 # RUN FLASK
 # -------------------------
 if __name__ == '__main__':
-    app.run(debug=True, port = 4000)
+    app.run(debug=True)
+
