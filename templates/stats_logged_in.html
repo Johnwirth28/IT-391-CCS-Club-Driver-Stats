@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Stats + Weather</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+ 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+ 
+        h2 {
+            margin-top: 40px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+ 
+        .controls {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+ 
+        select {
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+ 
+        table {
+            margin: 25px auto;
+            border-collapse: collapse;
+            width: 90%;
+        }
+ 
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            font-size: 15px;
+        }
+ 
+        th {
+            background: #800000;
+            color: white;
+            font-weight: bold;
+        }
+ 
+        td {
+            background: white;
+            text-align: left;
+        }
+ 
+        .fastest {
+            margin-top: 20px;
+            font-size: 19px;
+            font-weight: bold;
+        }
+ 
+        #chartContainer {
+            width: 45%;
+            height: 240px;
+            margin: 35px auto;
+        }
+
+        /* Form container - hidden by default */
+        .form-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            display: none; /* HIDDEN BY DEFAULT */
+        }
+
+        /* Show form when active */
+        .form-container.active {
+            display: block;
+        }
+ 
+        .form-group {
+            margin-bottom: 15px;
+        }
+ 
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+ 
+        input[type="text"], input[type="date"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+ 
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: red;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+ 
+        .submit-btn:hover {
+            background-color: darkred;
+        }
+
+        /* Add Data Button */
+        .add-data-btn {
+            margin: 20px auto;
+            padding: 12px 24px;
+            background-color: #800000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .add-data-btn:hover {
+            background-color: #a00000;
+        }
+
+        /* Close button */
+        .close-form-btn {
+            background-color: #666;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .close-form-btn:hover {
+            background-color: #888;
+        }
+    </style>
+</head>
+ 
+<body> 
+    <h1 class = "h1_style">
+         <button onclick="window.location.href='/home_logged_in';" class="h1_button_style">
+            <image src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+              </image>
+        </button>
+        <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+    </h1>
+    <div id="taskbar-container"></div>
+    
+    <h2>Driver Performance + Weather Data</h2>
+
+    <!-- Button to show form -->
+    <button class="add-data-btn" onclick="toggleForm()">➕ Add Result Data</button>
+
+    <!-- Form (hidden by default) -->
+    <div class="form-container" id="dataForm">
+        <h2>Enter Result Data</h2>
+        <form action="{{ url_for('add_data') }}" method="POST">
+            <div class="form-group">
+                <label for="driver">Driver Name</label>
+                <input type="text" id="driver" name="driver" placeholder="Enter driver name" required>
+            </div>
+            <div class="form-group">
+                <label for="event_date">Event Date</label>
+                <input type="date" id="event_date" name="event_date" required>
+            </div>
+            <div class="form-group">
+                <label for="car_class">Car Class</label>
+                <input type="text" id="car_class" name="car_class" placeholder="Enter car class" required>
+            </div>
+            <div class="form-group">
+                <label for="raw_time">Raw Time</label>
+                <input type="number" id="raw_time" name="raw_time" step="0.01" placeholder="Enter raw time" required>
+            </div>
+            <div class="form-group">
+                <label for="pax_time">Pax Time</label>
+                <input type="number" id="pax_time" name="pax_time" step="0.01" placeholder="Enter pax time" required>
+            </div>
+            <div class="form-group">
+                <label for="penalties">Penalties</label>
+                <input type="number" id="penalties" name="penalties" step="1" placeholder="Enter penalties" required>
+            </div>
+            <div class="form-group">
+                <label for="final_time">Final Time</label>
+                <input type="number" id="final_time" name="final_time" step="0.01" placeholder="Enter final time" required>
+            </div>
+            <div class="form-group">
+                <label for="high_temp">High Temperature</label>
+                <input type="number" id="high_temp" name="high_temp" step="0.1" placeholder="Enter high temp">
+            </div>
+            <div class="form-group">
+                <label for="low_temp">Low Temperature</label>
+                <input type="number" id="low_temp" name="low_temp" step="0.1" placeholder="Enter low temp">
+            </div>
+            <div class="form-group">
+                <label for="precip">Precipitation</label>
+                <input type="number" id="precip" name="precip" step="0.01" placeholder="Enter precipitation">
+            </div>
+            <div class="form-group">
+                <label for="conditions">Conditions</label>
+                <input type="text" id="conditions" name="conditions" placeholder="Enter weather conditions">
+            </div>
+    
+            <button type="submit" class="submit-btn">Submit</button>
+            <button type="button" class="close-form-btn" onclick="toggleForm()">Cancel</button>
+        </form>
+    </div>
+ 
+    <!-- Controls -->
+    <div class="controls">
+        <label>Sort by:</label>
+        <select id="sortSelect">
+            <option value="A">A → Z</option>
+            <option value="Z">Z → A</option>
+        </select>
+ 
+        &nbsp;&nbsp; | &nbsp;&nbsp;
+ 
+        <label>Select Event:</label>
+        <select id="eventSelect"></select>
+    </div>
+ 
+    <!-- Stats Table -->
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th>Driver</th>
+                <th>Date</th>
+                <th>Class</th>
+                <th>Raw Time (s)</th>
+                <th>PAX Time (s)</th>
+                <th>Penalties</th>
+                <th>Final Time (s)</th>
+                <th>High (°F)</th>
+                <th>Low (°F)</th>
+                <th>Precip (mm)</th>
+                <th>Conditions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+ 
+    <div class="fastest" id="fastestRaw"></div>
+    <div class="fastest" id="fastestPax"></div>
+ 
+    <!-- CHART -->
+    <div id="chartContainer">
+        <canvas id="eventChart"></canvas>
+    </div>
+ 
+    <script>
+        // Toggle form visibility
+        function toggleForm() {
+            const form = document.getElementById('dataForm');
+            form.classList.toggle('active');
+        }
+
+        const fullData = {{ data|tojson }};
+        let chart;
+ 
+        function extractEvents() {
+            const events = [...new Set(fullData.map(s => s.event_date))].sort().reverse();
+            const eventSelect = document.getElementById("eventSelect");
+            eventSelect.innerHTML = "";
+            events.forEach(date => {
+                const opt = document.createElement("option");
+                opt.value = opt.textContent = date;
+                eventSelect.appendChild(opt);
+            });
+        }
+ 
+        function loadTable(eventDate) {
+            const rows = fullData.filter(s => s.event_date === eventDate);
+            const tbody = document.querySelector("#statsTable tbody");
+            tbody.innerHTML = "";
+ 
+            rows.forEach(stat => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${stat.driver}</td>
+                    <td>${stat.event_date}</td>
+                    <td>${stat.car_class}</td>
+                    <td>${stat.raw_time.toFixed(2)}</td>
+                    <td>${stat.pax_time.toFixed(2)}</td>
+                    <td>${stat.penalties}</td>
+                    <td>${stat.final_time.toFixed(2)}</td>
+                    <td>${stat.high_temp ?? "N/A"}</td>
+                    <td>${stat.low_temp ?? "N/A"}</td>
+                    <td>${stat.precip ?? "N/A"}</td>
+                    <td>${stat.conditions}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+ 
+            updateFastest(rows);
+            updateChart(rows, eventDate);
+        }
+ 
+        function updateFastest(rows) {
+            const fastestRaw = rows.reduce((a, b) => a.raw_time < b.raw_time ? a : b);
+            const fastestPax = rows.reduce((a, b) => a.pax_time < b.pax_time ? a : b);
+ 
+            document.getElementById("fastestRaw").textContent =
+                `🏁 Fastest Raw Time: ${fastestRaw.driver} — ${fastestRaw.raw_time.toFixed(2)}s`;
+ 
+            document.getElementById("fastestPax").textContent =
+                `⚡ Fastest PAX Time: ${fastestPax.driver} — ${fastestPax.pax_time.toFixed(2)}s`;
+        }
+ 
+        function updateChart(rows, eventDate) {
+            if (chart) chart.destroy();
+ 
+            const drivers = rows.map(r => r.driver);
+            const rawTimes = rows.map(r => r.raw_time);
+            const paxTimes = rows.map(r => r.pax_time);
+            const finalTimes = rows.map(r => r.final_time);
+ 
+            const ctx = document.getElementById("eventChart");
+ 
+            chart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: drivers,
+                    datasets: [
+                        { label: "Raw Time", data: rawTimes, backgroundColor: "#a00000", barThickness: 35 },
+                        { label: "PAX Time", data: paxTimes, backgroundColor: "#c04040", barThickness: 35 },
+                        { label: "Final Time", data: finalTimes, backgroundColor: "#e06060", barThickness: 35 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+ 
+                    plugins: {
+                        tooltip: { enabled: true },
+                        legend: { position: "top" }
+                    },
+ 
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+ 
+        document.getElementById("eventSelect").addEventListener("change", (e) => {
+            loadTable(e.target.value);
+        });
+        
+        document.getElementById("sortSelect").addEventListener("change", (e) => {
+            const sortOrder = e.target.value;
+            const tbody = document.querySelector("#statsTable tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+
+            rows.sort((rowA, rowB) => {
+                const driverA = rowA.cells[0].textContent;
+                const driverB = rowB.cells[0].textContent;
+                
+                if (sortOrder === "A") {
+                    return driverA.localeCompare(driverB);
+                } else {
+                    return driverB.localeCompare(driverA);
+                }
+            });
+
+            tbody.innerHTML = "";
+            rows.forEach(row => tbody.appendChild(row));
+        });
+ 
+        window.onload = () => {
+            extractEvents();
+            loadTable(document.getElementById("eventSelect").value);
+        };
+    </script>
+    <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+ 
+</body>
+</html>

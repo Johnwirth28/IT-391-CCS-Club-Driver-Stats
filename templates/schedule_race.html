@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCSCC Driver Stats</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+  
+  <style>
+      body {
+          margin: 5;
+          font-family: Arial, sans-serif;
+      }
+    
+
+</style>
+</head>
+
+<body>
+
+    <h1 class = "h1_style">
+        
+        <!--<button onclick="window.location.href='driver_status_home.html';" class="h1_button_style">-->
+            <button onclick="window.location.href='/';" class="h1_button_style">
+            <!--<image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px; padding-top: 20px; ">-->
+                <image src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px; padding-top: 20px; "></image>
+
+        </button>
+        <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+
+    </h1>
+    <div id="taskbar-container"></div>
+
+    <!-- Events list: date on the left, day links on the right -->
+    <section id="events-list" aria-label="Race schedule events" style="max-width:900px; margin: 1rem auto; padding: 0 1rem;">
+        <h2 style="text-align:left; font-size:1.25rem; margin-bottom:0.5rem;">2025 Event Schedule</h2>
+        
+        {% if events %}
+        <ul style="list-style:none; padding:0; margin:0;">
+            {% for event in events %}
+            <li class="event-row" style="display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #e6e6e6;">
+                <div style="flex:1;">
+                    <div class="event-date" style="color:#444; font-weight:600;">{{ event.date }}</div>
+                    <div class="event-name" style="color:#666; font-size:0.9rem;">{{ event.name }}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="text-align:center; color:#666; padding:2rem;">
+            Unable to load schedule. Please check back later.
+        </p>
+        {% endif %}
+    </section>
+
+    <!--<script src="taskbar.js"></script>-->
+    <script src="{{ url_for('static', filename='taskbar.js') }}"></script>
+
+        
+</body>
+</html>

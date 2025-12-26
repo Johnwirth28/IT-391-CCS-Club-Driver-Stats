@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCSCC Driver Stats</title> 
+  <!--
+  <link rel="stylesheet" href="taskbar_logged_in.css">
+  <link rel="stylesheet" href="widgets.css">
+  <link rel="stylesheet" href="header.css">
+-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+  <style>
+      body {
+          margin: 5;
+          font-family: Arial, sans-serif;
+      }
+    
+    
+  
+   
+</style>
+</head>
+
+<body>
+    <h1 class = "h1_style">
+        
+        <!--<button onclick="window.location.href='driver_status_logged_in_home.html';" class="h1_button_style">
+            
+            <image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+        
+
+        </button>-->
+
+         <button onclick="window.location.href='/home_logged_in';" class="h1_button_style">
+            
+            <image src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+        
+
+        </button>
+
+        <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+
+    </h1>
+
+    <div id="taskbar-container"></div>
+    
+    <div class ="widgets">
+        <div class ="widget">
+            <!--<button onclick="window.location.href='stats_logged_in.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">-->
+             <button onclick="window.location.href='/stats_logged_in';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+            Driver Stats
+            </button>
+        </div>
+        <div class ="widget">
+            <!--<button onclick="window.location.href='personal_stats.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">-->
+            <button onclick="window.location.href='/personal_stats';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+            Personal Stats
+        </button>
+        </div>
+
+        <div class="widget">
+            <button onclick="window.location.href='/garage';" style="font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+                Garage
+            </button>
+            
+            {% if latest_car %}
+                <div style="padding: 10px; text-align: left; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: bold;">Latest Car:</p>
+                    <p style="margin: 3px 0;">{{ latest_car.car_year }} {{ latest_car.car_make }} {{ latest_car.car_model }}</p>
+                    <p style="margin: 3px 0; font-size: 12px; color: #666;">
+                    </p>
+                </div>
+            {% else %}
+                <p>No cars in garage yet</p>
+            {% endif %}
+        </div>
+
+        <div class ="widget">
+            <!--<button onclick="window.location.href='schedule_race_logged_in.html';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">-->
+            <button onclick="window.location.href='/schedule_race_logged_in';" style=" font-weight: bold; font-size: x-large; background: none; border: none; color: inherit; cursor: pointer;">
+        Most Recent Event
+        </button>
+            {% if most_recent_event %}
+                <div style="padding: 10px; text-align: left; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: bold;">{{ most_recent_event.name }}</p>
+                    <p style="margin: 3px 0;">{{ most_recent_event.date }}</p>
+                    <p style="margin: 3px 0; font-size: 12px; color: #666;">
+                        {% if most_recent_event.chairs %}
+                            Chair: {{ most_recent_event.chairs }}
+                        {% endif %}
+                    </p>
+                </div>
+            {% else %}
+                <p>No upcoming events</p>
+            {% endif %}
+        </div>
+    </div>
+
+        <!--<script src="taskbar_logged_in.js"></script>-->
+         <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+</body>
+</html>

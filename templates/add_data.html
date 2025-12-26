@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CCSCC Driver Stats</title>
+ 
+  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+ 
+  <style>
+      body {
+          margin: 20px;
+          font-family: Arial, sans-serif;
+      }
+ 
+      .form-container {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          background-color: #f9f9f9;
+      }
+ 
+      .form-group {
+          margin-bottom: 15px;
+      }
+ 
+      label {
+          display: block;
+          font-weight: bold;
+          margin-bottom: 5px;
+      }
+ 
+      input[type="text"], input[type="date"], input[type="number"] {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+      }
+ 
+      .submit-btn {
+          display: block;
+          width: 100%;
+          padding: 10px;
+          background-color: red;
+          color: white;
+          font-weight: bold;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+ 
+      .submit-btn:hover {
+          background-color: darkred;
+      }
+  </style>
+</head>
+ 
+<body>
+ 
+    <h1 class="h1_style">
+        <button onclick="window.location.href='/home_logged_in';" class="h1_button_style">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style="position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px; padding-top: 20px;">
+        </button>
+        <span style="font-size: xx-large;">CCSCC Stats</span>
+    </h1>
+ 
+    <div id="taskbar-container"></div>
+ 
+    <div class="form-container">
+        <h2>Enter Result Data</h2>
+        <div class="form-group">
+   <form action="{{ url_for('add_data') }}" method="POST">
+    <div class="form-group">
+        <label for="driver">Driver Name</label>
+        <input type="text" id="driver" name="driver" placeholder="Enter driver name">
+    </div>
+    <div class="form-group">
+        <label for="event_date">Event Date</label>
+        <input type="date" id="event_date" name="event_date">
+    </div>
+    <div class="form-group">
+        <label for="car_class">Car Class</label>
+        <input type="text" id="car_class" name="car_class" placeholder="Enter car class">
+    </div>
+    <div class="form-group">
+        <label for="raw_time">Raw Time</label>
+        <input type="number" id="raw_time" name="raw_time" step="0.01" placeholder="Enter raw time">
+    </div>
+    <div class="form-group">
+        <label for="pax_time">Pax Time</label>
+        <input type="number" id="pax_time" name="pax_time" step="0.01" placeholder="Enter pax time">
+    </div>
+    <div class="form-group">
+        <label for="penalties">Penalties</label>
+        <input type="number" id="penalties" name="penalties" step="1" placeholder="Enter penalties">
+    </div>
+    <div class="form-group">
+        <label for="final_time">Final Time</label>
+        <input type="number" id="final_time" name="final_time" step="0.01" placeholder="Enter final time">
+    </div>
+    <div class="form-group">
+        <label for="high_temp">High Temperature</label>
+        <input type="number" id="high_temp" name="high_temp" step="0.1" placeholder="Enter high temp">
+    </div>
+    <div class="form-group">
+        <label for="low_temp">Low Temperature</label>
+        <input type="number" id="low_temp" name="low_temp" step="0.1" placeholder="Enter low temp">
+    </div>
+    <div class="form-group">
+        <label for="precip">Precipitation</label>
+        <input type="number" id="precip" name="precip" step="0.01" placeholder="Enter precipitation">
+    </div>
+    <div class="form-group">
+        <label for="conditions">Conditions</label>
+        <input type="text" id="conditions" name="conditions" placeholder="Enter weather conditions">
+    </div>
+ 
+    <button type="submit" style="background-color:red; color:white; padding:10px 20px; border:none; border-radius:5px;">Submit</button>
+</form>
+ 
+<script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+ 
+ 
+</body>
+</html>
+ 

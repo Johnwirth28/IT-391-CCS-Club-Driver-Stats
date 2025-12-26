@@ -1,0 +1,23 @@
+.taskbar{
+    background-color: rgb(129, 18, 18);
+    overflow: hidden;
+}
+
+.taskbar a{
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+
+}
+
+.taskbar a.right{
+    float: right;
+}
+
+.taskbar    a:hover{
+    background-color: grey;
+    color: black;
+}

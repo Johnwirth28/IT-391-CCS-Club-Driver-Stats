@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Garage - CCSCC Club Driver Stats</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='taskbar_logged_in.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='widgets.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .form-container, .car-list {
+      max-width: 800px;
+      margin: 20px auto;
+      background: #f8f8f8;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button[type="submit"] {
+      margin-top: 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button[type="delete"] {
+      margin-top: 15px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+
+    }
+
+    button[type="submit"]:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1 class = "h1_style">
+        
+    <!--<button onclick="window.location.href='driver_status_home.html';" class="h1_button_style">
+
+        <image src="logo.png" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px; padding-top: 20px; ">
+
+    </button>-->
+
+     <button onclick="window.location.href='/home_logged_in';" class="h1_button_style">
+        
+        <image src="{{ url_for('static', filename='logo.png') }}" alt="CCSCC Logo" style=" position: absolute; left: 0; height: 80px; vertical-align: middle; margin-right: 10px;padding-top: 20px; ">
+          </image>
+
+    </button>
+    <span style = "font-size: xx-large; position: left ">CCSCC Stats </span>
+
+</h1>
+    <div id="taskbar-container"></div>
+<!--
+    <div class = "buttons">
+            <button class="action-btn" onclick="showAddCar()">Add Car</button>
+            <button class="action-btn" onclick="removeAllCars()">Remove All Cars</button>
+    </div>
+  -->
+  <!-- Car List -->
+  <div class="car-list">
+    <h2>Your Cars</h2>
+    {% if cars %}
+      <table>
+        <tr>
+          <th>Driver</th>
+          <th>Year</th>
+          <th>Make</th>
+          <th>Model</th>
+          <th>Wheelbase</th>
+          <th>Tire Description</th>
+          <th>Weight</th>
+          <!--<th>Action</th>-->
+        </tr>
+        {% for car in cars %}
+        <tr>
+          <td>{{ car.car_driver_name }}</td>
+          <td>{{ car.car_year }}</td>
+          <td>{{ car.car_make }}</td>
+          <td>{{ car.car_model }}</td>
+          <td>{{ car.wheelbase or 'N/A' }}</td>
+          <td>{{car.tire_description}}</td>
+          <td>{{ car.weight or 'N/A' }}</td>
+          <td>
+            <form method = "POST" action="/garage/delete_car/{{ car.car_id }}" onsubmit="return confirm('Are you sure you want to delete this car?');">
+              <button type="delete">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No cars added yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Add Car Form -->
+  <div class="form-container">
+    <h2>Add a New Car</h2>
+    <form method="POST">
+     
+      <label>Year:</label>
+      <input type="number" name="car_year" required>
+
+      <label>Make:</label>
+      <input type="text" name="car_make" required>
+
+      <label>Model:</label>
+      <input type="text" name="car_model" required>
+
+      <label>Wheelbase:</label>
+      <input type="number" step="0.01" name="wheelbase">
+
+      <label>Mods:</label>
+      <textarea name="mods"></textarea>
+
+      <label>Tire Description:</label>
+      <textarea name="tire_description"></textarea>
+
+      <label>Weight:</label>
+      <input type="number" name="weight">
+
+      <button type="submit">Add Car</button>
+    </form>
+  </div>
+  <script src="{{ url_for('static', filename='taskbar_logged_in.js') }}"></script>
+
+</body>
+</html>
